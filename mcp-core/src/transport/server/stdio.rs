@@ -7,10 +7,11 @@ use crate::types::ErrorCode;
 use anyhow::Result;
 use async_trait::async_trait;
 use std::future::Future;
-use std::io::{self, BufRead, Write};
+use std::io::{self, Write};
 use std::pin::Pin;
 use tokio::time::timeout;
 use tracing::debug;
+use tokio::io::{AsyncBufReadExt, BufReader};
 
 /// Server transport that communicates with MCP clients over standard I/O.
 ///
@@ -115,10 +116,10 @@ impl Transport for ServerStdioTransport {
     ///
     /// A `Result` containing an `Option<Message>`. `None` indicates EOF.
     async fn poll_message(&self) -> Result<Option<Message>> {
-        let stdin = io::stdin();
-        let mut reader = stdin.lock();
+        let stdin = tokio::io::stdin();
+        let mut reader = BufReader::new(stdin);
         let mut line = String::new();
-        reader.read_line(&mut line)?;
+        reader.read_line(&mut line).await?;
         if line.is_empty() {
             return Ok(None);
         }
