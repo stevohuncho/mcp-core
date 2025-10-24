@@ -224,7 +224,7 @@ impl Transport for ClientSseTransport {
 
         // Wait for the session URL to be set
         let mut attempts = 0;
-        while attempts < 10 {
+        while attempts < 100 {
             if self.session_endpoint.lock().await.is_some() {
                 return Ok(());
             }
